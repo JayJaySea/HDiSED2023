@@ -13,6 +13,20 @@ def ongoing_tournaments():
     tournaments = lichess_to_tournaments(standard)
 
     cur = get_db_cursor()
+
+    values = []
+    for tournament in tournaments:
+        values.append((
+            tournament["id"],
+            tournament["name"],
+            tournament["location"],
+            tournament["date"],
+            tournament["origin"]
+        ))
+
+    cur.executemany("insert into tournaments values(?, ?, ?, ?, ?)", values)
+    cur.connection.commit()
+
     cur.close()
 
     return tournaments
