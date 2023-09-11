@@ -1,8 +1,6 @@
 import sqlite3
 import uuid
-import chess.pgn
 import os, mmap
-from io import StringIO
 
 def create_schema(database_path):
     if os.path.exists(database_path):
@@ -55,8 +53,10 @@ Do you want to proceed? [Y/n] '''
         white_id text not null references players(id) on delete restrict,
         black_id text not null references players(id) on delete restrict,
         tournament_id text references tournaments(id) on delete restrict,
-        result text not null,
+        winner text not null,
         moves text not null,
+        white_elo integer,
+        black_elo integer,
         time_format text,
         date text,
         debut text,
@@ -80,6 +80,7 @@ def load_data(database_path, file):
     players,tournaments = extract_players_and_tournaments(games)
     insert_players(cur, players)
     insert_tournaments(cur, tournaments)
+
     con.commit()
     print("Populating players and tournaments... Done")
 
@@ -107,9 +108,15 @@ def load_games(pgn_file):
             parts = line.strip()[1:-1].split(' "')
             if len(parts) == 2:
                 key, value = parts
-                game[key] = value[:-1]
+                if key.strip() == "WhiteElo" or key.strip() == "BlackElo":
+                    try:
+                        game[key] = int(value[:-1])
+                    except ValueError:
+                        game[key] = None
+                else:
+                    game[key] = value[:-1]
         elif line[0] == '1':
-            game["Moves"] = line
+            game["Moves"] = line.strip()
             games.append(game)
             game = {}
 
@@ -173,6 +180,8 @@ def extract_games(games, players, tournaments):
                 "white": players[game["White"]],
                 "black": players[game["Black"]],
                 "tournament": tournaments[game["Event"]]["id"],
+                "white_elo": game.get("WhiteElo"),
+                "black_elo": game.get("BlackElo"),
                 "result": game.get("Result"),
                 "moves": game.get("Moves"),
                 "date": game.get("Date"),
@@ -196,8 +205,10 @@ def insert_games(cur, games):
              str(game["white"]),
              str(game["black"]),
              str(game["tournament"]),
-             game["result"],
+             transform_result(game["result"]),
              game["moves"],
+             game['white_elo'],
+             game['black_elo'],
              'Classical',
              game["date"],
              None,
@@ -205,4 +216,15 @@ def insert_games(cur, games):
              )
         )
 
-    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+
+def transform_result(result):
+    result = result.strip()
+    if result == "1-0":
+        return "White"
+    if result == "0-1":
+        return "Black"
+    if result == "1/2-1/2":
+        return "Draw"
+    else:
+        return "Unfinished/Unknown"
