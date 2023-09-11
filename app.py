@@ -1,8 +1,6 @@
-from flask import Flask
+from lichess_api import *
 from misc import *
-import sqlite3
 
-app = Flask(__name__)
 
 @app.route("/games/<offset>/<limit>", methods = ["GET"])
 def games(offset, limit):
@@ -143,11 +141,3 @@ def tournament_by_id(id: str):
     cur.close()
 
     return to_objects(columns, tournament)
-
-
-def get_db_cursor():
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    cur.execute("PRAGMA foreign_keys = ON")
-
-    return cur
