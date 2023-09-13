@@ -60,7 +60,8 @@ Do you want to proceed? [Y/n] '''
         time_format text,
         date text,
         debut text,
-        eco text
+        eco text,
+        origin text
     )
     ''')
     print("Done")
@@ -99,9 +100,9 @@ def load_games(pgn_file):
 
     game = {}
     for line in iter(games_mmap.readline, b""):
-        line = line.decode("utf-8")
+        line = line.decode("utf-8").strip()
 
-        if not line.strip():
+        if not line:
             continue
 
         if line[0] == "[":
@@ -115,8 +116,8 @@ def load_games(pgn_file):
                         game[key] = None
                 else:
                     game[key] = value[:-1]
-        elif line[0] == '1':
-            game["Moves"] = line.strip()
+        elif line[0] == '1' or line[0] == '0':
+            game["Moves"] = line
             games.append(game)
             game = {}
 
@@ -212,11 +213,12 @@ def insert_games(cur, games):
              'Classical',
              game["date"],
              None,
-             game["eco"]
+             game["eco"],
+             "Historical"
              )
         )
 
-    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
 
 def transform_result(result):
     result = result.strip()

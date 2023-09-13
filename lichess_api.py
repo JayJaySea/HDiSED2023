@@ -81,6 +81,7 @@ def fetch_new_games(tournaments):
                 data = res.text
                 break
             else:
+                print("Got status " + str(res.status_code) + ". Waiting..")
                 sleep(61.)
 
         games[tournament["id"]] = data
@@ -110,7 +111,7 @@ def parse_games(games):
                     else:
                         game[key] = value[:-1]
 
-            elif line[0] == '1':
+            elif line[0] == '1' or line[0] == '0':
                 game["TournamentID"] = tournament_id
                 game["Moves"] = line.strip()
                 game["Winner"] = transform_result(game.get("Result"))
@@ -167,6 +168,7 @@ def extracted_to_players(extracted):
                     data = json.loads(res.text)
                     break
                 else:
+                    print("Got status " + str(res.status_code) + ". Waiting..")
                     sleep(61.)
             except:
                 continue
@@ -205,7 +207,8 @@ def extracted_to_games(extracted_games, players):
             "time_format": game["TimeControl"],
             "date": game["Date"],
             "debut": None,
-            "eco": game["ECO"]
+            "eco": game["ECO"],
+            "origin": game.get("Site")
         })
 
     return games
@@ -221,7 +224,7 @@ def insert_tournaments(cur, tournaments):
 def insert_games(cur, games):
     print(games)
     cur.executemany(
-        "insert into games values(:id, :white_id, :black_id, :tournament_id, :winner, :moves, :white_elo, :black_elo, :time_format, :date, :debut, :eco)",
+        "insert into games values(:id, :white_id, :black_id, :tournament_id, :winner, :moves, :white_elo, :black_elo, :time_format, :date, :debut, :eco, :origin)",
         games
     )
 
