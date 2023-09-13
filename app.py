@@ -111,6 +111,30 @@ def tournaments(offset, limit):
     return to_objects(columns, tournaments)
 
 
+@app.route("/tournaments/location/<location>", methods = ["GET"])
+def tournaments_by_location(location):
+    cur = get_db_cursor()
+
+    columns = table_columns(cur, "tournaments")
+    res = cur.execute("select * from tournaments where location = ?", (location,))
+    tournaments = res.fetchall()
+
+    cur.close()
+
+    return to_objects(columns, tournaments)
+
+@app.route("/tournaments/origin/<origin>", methods = ["GET"])
+def tournaments_by_origin(origin):
+    cur = get_db_cursor()
+
+    columns = table_columns(cur, "tournaments")
+    res = cur.execute("select * from tournaments where origin = ?", (origin,))
+    tournaments = res.fetchall()
+
+    cur.close()
+
+    return to_objects(columns, tournaments)
+
 @app.route("/tournaments/player/<id>", methods = ["GET"])
 def tournaments_by_player(id):
     cur = get_db_cursor()
