@@ -196,7 +196,6 @@ def transform_result(result: str):
         return "Unfinished/Unknown"
 
 def checkIfPlayerExists(playerName: str):
-  
     playerName = playerName.lower()
     cur = get_db_cursor()
     query = "select count(*) from players where lower(name) = ?"
@@ -206,6 +205,19 @@ def checkIfPlayerExists(playerName: str):
     if result[0] > 0: 
         return True
     return False
+
+def checkIfGameExists(gameOrigin: str):
+    gameOrigin = gameOrigin.lower()
+    cur = get_db_cursor()
+    query = "select count(*) from games where lower(origin) = ?"
+    cur.execute(query, (gameOrigin,))
+    result = cur.fetchone()
+  
+    if result[0] > 0: 
+        return True
+    return False
+    
+    
 
 def getPlayerIdOrNone(playerName: str):
     playerName = playerName.lower()
@@ -256,38 +268,34 @@ def load(games: list[pd.DataFrame]):
             
             
         else:
-            
             playerProfile = json.loads(extractPlayerProfile(blackName))
-           
-           
             playerDf = transformPlayerProfile(playerProfile)
             blackId = loadPlayer(playerDf)
             #blackId = playerDf["id"]
         
         try: 
-         
-            values.append((
-                str(uuid.uuid4()),
-                str(whiteId),
-                str(blackId),
-                None,
-                str(game["Result"].values[0]),
-                str(game["Moves"].values[0]),
-                int(game["WhiteElo"].values[0]),
-                int(game["BlackElo"].values[0]),
-                str(game["TimeControl"].values[0]),
-                str(game["Date"].values[0]),
-                str(game["ECOUrl"].values[0]),
-                str(game["ECO"].values[0]),
-            ))
             
-            
+            if not checkIfGameExists(str(game["Link"].values[0])):
+                values.append((
+                    str(uuid.uuid4()),
+                    str(whiteId),
+                    str(blackId),
+                    None,
+                    str(game["Result"].values[0]),
+                    str(game["Moves"].values[0]),
+                    int(game["WhiteElo"].values[0]),
+                    int(game["BlackElo"].values[0]),
+                    str(game["TimeControl"].values[0]),
+                    str(game["Date"].values[0]),
+                    str(game["ECOUrl"].values[0]),
+                    str(game["ECO"].values[0]),
+                    str(game["Link"].values[0]),
+                ))
         except Exception as error:
-       
             print(error)
    
     cur = get_db_cursor()
-    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+    cur.executemany("insert into games values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
     cur.connection.commit()
     cur.close()
     
