@@ -21,6 +21,18 @@ MOVE_KEY = "Moves"
 USED_PGN_KEYS = [MOVE_KEY, "TimeControl", "Link", "White", "Black", "Event", "Result", "ECO", "ECOUrl","WhiteElo", "BlackElo", "Date", "Round"]
 
     
+
+@app.route("/games/player/chesscom/<name>/<year>/<month>", methods = ["GET"])
+def get_chesscom_player_games(name, year, month):
+    pgn = extractGameByPlayerNameInTime(name, year, month)
+    games = transformPGN(pgn)
+    load(games)
+
+    games_json = []
+    for game in games:
+        games_json.append(game.to_dict(orient='records'))
+
+    return games_json
     
 def extractGameByPlayerNameInTime(playerName: str, year: int, month: int = 1):
     """Extract from chess.api player games in specified time
@@ -299,16 +311,3 @@ def load(games: list[pd.DataFrame]):
     cur.connection.commit()
     cur.close()
     
-
-pgn = extractGameByPlayerNameInTime("gmhikarunakamuraontwitch", 2021, 4)
-games = transformPGN(pgn)
-load(games)
-
-
-
-
-
-
-
-
-

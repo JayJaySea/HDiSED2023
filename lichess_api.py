@@ -197,6 +197,7 @@ def insert_players(cur, players):
     )
 
     cur.connection.commit()
+    print("Inserted all new players")
 
 def extracted_to_games(extracted_games, players):
     games = []
@@ -226,6 +227,7 @@ def insert_tournaments(cur, tournaments):
     )
 
     cur.connection.commit()
+    print("Inserted all new tournaments")
 
 def insert_games(cur, games):
     print(games)
@@ -235,3 +237,4 @@ def insert_games(cur, games):
     )
 
     cur.connection.commit()
+    print("Inserted all new games")

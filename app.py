@@ -1,5 +1,6 @@
 from lichess_api import *
 from misc import *
+from chesscomApi import *
 
 
 @app.route("/games/<offset>/<limit>", methods = ["GET"])
