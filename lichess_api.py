@@ -21,13 +21,13 @@ def recent_tournaments():
 
     cur = get_db_cursor()
     unique = leave_unique_tournaments(cur, tournaments)
+    insert_tournaments(cur, unique)
 
     completing_data = multiprocessing.Process(
-        target=start_completing_data, args=(cur, tournaments, lock)
+        target=start_completing_data, args=(cur, [unique[0]], lock)
     )
     completing_data.start()
 
-    insert_tournaments(cur, unique)
     cur.close()
 
     return tournaments
@@ -162,15 +162,21 @@ def extracted_to_players(extracted):
         data = "[]"
         while True:
             try:
+                sleep(1.)
+                print(name.strip())
                 res = requests.get("https://lichess.org/api/user/" + name.strip())
+                print(res.text)
 
                 if res.ok: 
                     data = json.loads(res.text)
+                    print("Player received: " + str(data))
                     break
                 else:
                     print("Got status " + str(res.status_code) + ". Waiting..")
+                    # print("Data received: " + res.text)
                     sleep(61.)
-            except:
+            except Exception as error:
+                print(error)
                 continue
 
         players.append({
